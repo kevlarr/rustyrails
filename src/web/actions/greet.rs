@@ -1,5 +1,3 @@
-use actix_web::web::Path;
-
-pub async fn get(Path((name,)): Path<(String,)>) -> String {
+pub async fn get(name: String) -> String {
     name
 }
