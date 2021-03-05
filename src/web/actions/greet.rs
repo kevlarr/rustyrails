@@ -1,3 +1,5 @@
-pub async fn get(name: String) -> String {
-    name
+use crate::web::scopes::NameScope;
+
+pub async fn get(scope: NameScope) -> String {
+    scope.name
 }

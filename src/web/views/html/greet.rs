@@ -1,15 +1,15 @@
 use maud::{html, Markup, Render};
 use crate::web::views::html::Content;
 
-pub struct View(pub String);
+pub struct GreetHtml(pub String);
 
-impl Content for View {
+impl Content for GreetHtml {
     fn title(&self) -> String {
         format!("Greetings to {}", self.0)
     }
 }
 
-impl Render for View {
+impl Render for GreetHtml {
     fn render(&self) -> Markup {
         html! {
             h1#greeting {

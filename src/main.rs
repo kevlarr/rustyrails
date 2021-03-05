@@ -1,24 +1,27 @@
 use std::io;
 
 use actix_web::{
-    web::Path,
     App,
     HttpServer,
     Responder,
 };
 
 use rustyrails::{
-    web::{actions, views::html},
+    web::{
+        actions,
+        scopes::*,
+        views::html::*,
+    },
     Router,
 };
 
 async fn root() -> impl Responder {
-    html::Layout(html::root::View)
+    Layout(RootHtml)
 }
 
-async fn greet(Path((name,)): Path<(String,)>) -> impl Responder {
-    html::Layout(html::greet::View(
-        actions::greet::get(name).await
+async fn greet(scope: NameScope) -> impl Responder {
+    Layout(GreetHtml(
+        actions::greet::get(scope).await
     ))
 }
 
@@ -28,7 +31,7 @@ async fn main() -> io::Result<()> {
     let app = || {
         let routes = Router::new("/")
             .get("", root)
-            .get("/{name}", greet)
+            .get("{name}", greet)
             .service;
 
         App::new().service(routes)
