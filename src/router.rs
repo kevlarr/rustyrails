@@ -17,15 +17,53 @@ use actix_web::{
 };
 
 
+
+pub struct Resource<T>
+where
+    T: FromRequest + 'static
+{
+    scope: Scope,
+    _marker: std::marker::PhantomData<&'static T>,
+}
+
+impl<T> Resource<T>
+where
+    T: FromRequest + 'static
+{
+    pub fn new() -> Self {
+        Self {
+            scope: web::scope(""),
+            _marker: std::marker::PhantomData,
+        }
+    }
+
+    pub fn get<F, T1, R, U>(mut self, path: &str, handler: F) -> Self
+    where
+        F: Factory<T1, R, U>,
+        R: Future<Output = U> + 'static,
+        U: Responder + 'static,
+        T1: FromRequest + 'static,
+    {
+        self.scope = self.scope.route(path, web::get().to(handler));
+        self
+    }
+}
+
+
 pub struct Router {
-    pub service: Scope,
+    scope: Scope,
 }
 
 impl Router {
-    pub fn new(path: &str) -> Self {
+    //pub fn new(path: &str) -> Self {
+    pub fn new() -> Self {
         Self {
-            service: web::scope(path),
+            scope: web::scope(""),
         }
+    }
+
+    pub fn routes(self) -> Scope {
+        self.scope
     }
 
     //pub fn default<F, T, R, U>(mut self, handler: F) -> Self
@@ -39,10 +77,13 @@ impl Router {
         //self
     //}
 
-    pub fn scope(mut self, path: &str, cb: impl Fn(Self) -> Self) -> Self {
-        let routes = Self { service: web::scope(path) };
-
-        self.service = self.service.service(cb(routes).service);
+    pub fn resource<T>(mut self, path: &str, res: Resource<T>) -> Self
+    where
+        T: FromRequest + 'static,
+    {
+        self.scope = self.scope.service(
+            web::scope(path).service(res.scope)
+        );
         self
     }
 
@@ -61,7 +102,7 @@ impl Router {
         R: Future<Output = U> + 'static,
         U: Responder + 'static,
     {
-        self.service = self.service.route(path, web::get().to(handler));
+        self.scope = self.scope.route(path, web::get().to(handler));
         self
     }
 

@@ -13,6 +13,7 @@ use rustyrails::{
         views::html::*,
     },
     Router,
+    Resource,
 };
 
 async fn root() -> impl Responder {
@@ -29,12 +30,20 @@ async fn greet(scope: NameScope) -> impl Responder {
 #[actix_web::main]
 async fn main() -> io::Result<()> {
     let app = || {
-        let routes = Router::new("/")
+        let router = Router::new()
             .get("", root)
-            .get("{name}", greet)
-            .service;
 
-        App::new().service(routes)
+            //.resource::<NameScope, _>("{name}", |name| name
+                //.get("", greet)
+            //);
+
+             //TODO scope should be optional?
+            .resource("{name}", Resource::<NameScope>::new()
+                .get("", greet)
+            )
+        ;
+
+        App::new().service(router.routes())
     };
     
     HttpServer::new(app)
