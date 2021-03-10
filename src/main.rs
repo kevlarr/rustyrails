@@ -25,11 +25,10 @@ async fn greet(scope: NameScope) -> impl Responder {
     ))
 }
 
-
 #[actix_web::main]
 async fn main() -> io::Result<()> {
     let app = || {
-        let routes = Router::new("/")
+        let router = Router::new("/")
             .get("", root)
 
             // Ultimately I would like to be able to validate that handlers
@@ -44,10 +43,9 @@ async fn main() -> io::Result<()> {
             // https://github.com/kevlarr/rustyrails/tree/scoped-handler-sig-validation
             .scope("{name}", |name| name
                 .get("", greet)
-            )
-            .service;
+            );
 
-        App::new().service(routes)
+        App::new().service(router.service())
     };
     
     HttpServer::new(app)
